@@ -1,0 +1,150 @@
+<html>
+ <head>
+  <link rel="stylesheet" type="text/css" href="mono.css" />
+ </head>
+ <body>
+<p>
+This page is a basic primer on the <a href="#glossary">terminology</a> and <a
+href="#principles">principles</a> of cryptography.  The target audience is
+people familiar with the basics of computer science or mathematics.
+</p>
+
+<p><a name="principles" />
+Cryptography is a school of study primarily concerned with two goals:
+<b>confidentiality</b> and <b>authenticity</b>. Confidentiality of a message
+means that nobody other than the intended recipient(s) can read the message;
+authenticity of a message means that the recipient(s) can be confident that the
+message comes from a particular source and has not been tampered with or
+altered. An important notion is the idea of <b>proof</b> - of demonstrating to a
+recipient that something is true beyond reasonable doubt in a way that the
+recipient can easily verify. A <b>message</b> is a sequence of symbols; symbols
+in this context will usually be bytes, although they may also be letters or
+individual bits.
+</p>
+
+<p>
+First, let's introduce our cast of characters. <b>Alice</b>, <b>Bob</b>,
+<b>Charlie</b> and <b>Dave</b> are users of cryptographic protocols; they are
+trying to send messages to one another or prove things to each other. <b>Eve</b>
+is a malicious eavesdropper; she can listen to messages as they pass between
+users of protocols, but cannot modify them. <b>Mallory</b> is a
+<b>man-in-the-middle</b>; Mallory can not only listen to messages passing
+between users, but also modify them. Sometimes, <b>Trent</b> will make an
+appearance; Trent is a third party that all users of a protocol trust
+implicitly. Trent might be a bank or a government in some examples.
+</p>
+
+<p>
+Now let's talk (abstractly) about the classes of primitives cryptography deals
+in. Broadly speaking, we can divide cryptographic primitives into three classes:
+<b><a href="#hash">hash functions</a></b>, <b><a href="#symm">symmetric
+ciphers</a></b>, and <b><a href="#asymm">asymmetric ciphers</a></b>. A
+<b>cipher</b> is a pair of functions, called an <b>encryption function</b> and a
+<b>decryption function</b>; the encryption function accepts a <b>plaintext</b>
+(unencrypted message) and a <b>key</b>, and produces a <b>ciphertext</b>
+(encrypted message), and the decryption function accepts a ciphertext and a key
+(not necessarily the same as was provided to the encryption function) and
+produces the original plaintext.
+</p>
+
+<p><a name="hash" />
+A <b>hash function</b> turns a message of any length into a string of fixed
+length, called a <b>hash</b>, <b>digest</b>, or <b>fingerprint</b>. A hash
+function is a function in the mathematical sense, meaning that its output is
+entirely determined by its input, so the same message will always have the same
+hash. A simple example of a <b>non-cryptographic</b> hash function of a sequence
+S_0, S_1, ... S_n of bytes might be:
+</p>
+
+<p><pre>
+  simple(n) = (S_0 + S_1 + ... + S_n) mod 256
+</pre></p>
+
+<p>
+This example hash function takes a message of any length and produces a string
+of fixed length; in this case, the hash is 8 bits long. We can see how we could
+use this function to detect <b>accidental</b> errors when transmitting a
+message: if we computed the hash <tt>simple(m)</tt> of a message <tt>m</tt> we
+wished to send and sent that as well, if <tt>m</tt> were accidentally corrupted,
+we would be quite likely to notice, since the recipient would be able to compute
+<tt>simple</tt> of the corrupted <tt>m</tt> and see that it did not match our
+<tt>simple(m)</tt>. However, if Mallory were modifying <tt>m</tt>, she could
+also quite simply modify <tt>m</tt> to produce <tt>m'</tt> (pronounced "m
+prime") in such a way that <tt>simple(m')</tt> was equal to <tt>simple(m)</tt>.
+The fact that this is easy to do for Mallory is part of what makes
+<tt>simple</tt> a non-cryptographic hash.
+</p>
+
+<p>
+A <b>cryptographic hash</b> has to be resistant to such attempts at
+manipulation. In fact, a cryptographic hash function <tt>H</tt> should have
+these four properties:
+<ul>
+ <li>Given <tt>m</tt>, it is easy to compute <tt>H(m)</tt>. There is no common
+     name for this property, but we'll call it <b>image easiness</b>.</li>
+ <li>Given a hash value <tt>h</tt>, it is difficult to compute any <tt>m</tt>
+     such that <tt>H(m)</tt> is equal to <tt>h</tt>. This property is called
+     <b>preimage resistance</b>.</li>
+ <li>Given <tt>m</tt>, it is difficult to compute <tt>m'</tt> such that
+     <tt>H(m)</tt> and <tt>H(m')</tt> are equal. This property is called
+     <b>second preimage resistance</b>.</li>
+ <li>It is difficult to find <tt>m</tt> and <tt>m'</tt> such that <tt>H(m)</tt>
+     and <tt>H(m')</tt> are equal. This property is called <b>collision
+     resistance</b>.</li>
+</ul>
+</p>
+
+<p>
+We can evaluate <tt>simple</tt> by these criteria:
+<ul>
+ <li><b>Image easiness</b>: Yes. The algorithm given for <tt>simple</tt> is
+     trivial to implement.</li>
+ <li><b>Preimage resistance</b>: No. Given any 8-bit value <tt>h</tt>, we can easily find
+     as many messages <tt>m</tt> as we like for which <tt>simple(m) = h</tt>.
+     For example, <tt>simple(h) = h</tt>, and <tt>simple({h, 0}) = h</tt>, as
+     does <tt>simple({h, 0, 0...})</tt>.</li>
+ <li><b>Second preimage resistance</b>: No, for the same reason as <tt>h</tt>
+     does not have preimage resistance.</li>
+ <li><b>Collision resistance</b>: No. For example, <tt>simple({15, 5}) =
+     simple({10, 10})</tt>.</li>
+</ul>
+</p>
+
+<p>
+There's something you might have noticed above: although it is easy, given some
+<tt>h</tt>, to find some <tt>m</tt> such that <tt>simple(m) = h</tt>, if I give
+you <tt>h = simple(m)</tt>, you have no way of finding the <i>specific</i> <tt>m</tt>
+that I used to compute <tt>h</tt>. It's easy to see why this is: <tt>m</tt> could
+have been a single byte equal to <tt>h</tt>, or two bytes that sum to <tt>h</tt>, or three bytes
+that sum to <tt>h</tt>, and so on. <tt>simple</tt> actually has the following
+alarming property: for each one-byte value <tt>h</tt>, there are
+<i>infinitely</i> many values <tt>m_0, m_1, ...</tt> such that <tt>simple(m_i) =
+h</tt>.
+</p>
+
+<p>
+The details of how to construct functions with those four desired properties are
+highly technical (and, in fact, over the author's head, mathematically), so
+we'll restrict ourselves to looking at the current field of hash functions in
+wide use:
+<ul>
+ <li><b>MD5</b>: MD5 has been publicly broken and should not be used. In 2005,
+     MD5's second-preimage resistance was broken. It produces a 128-bit hash
+     value.</li>
+ <li><b>SHA-1</b>: SHA-1 was designed by the NSA and is similar to MD5
+     design-wise; it has not yet been broken but is showing weaknesses and is <a
+     href="csrc.nist.gov/groups/ST/toolkit/documents/shs/hash_standards_comments.pdf">deprecated
+     by NIST</a>. It produces a 160-bit hash value.</li>
+ <li><b>SHA-2</b>: a generic name for a family of secure hash functions designed
+     by the NSA to replace SHA-1. Specific functions in this family are
+     <b>SHA-224</b>, <b>SHA-256</b>, <b>SHA-384</b>, and <b>SHA-512</b>. These
+     functions have not (as of 2012) been successfully attacked, but an effort
+     is under way to produce a standardized replacement. These functions are
+     named after their output lengths in bits.</li>
+</ul>
+</p>
+
+<p><a name="symm" />
+</p>
+ </body>
+</html>
