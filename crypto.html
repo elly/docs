@@ -10,38 +10,44 @@ people familiar with the basics of computer science or mathematics.
 </p>
 
 <p><a name="principles" />
-Cryptography is a school of study primarily concerned with two goals:
-<span class="term">confidentiality</span> and <span class="term">authenticity</span>. Confidentiality of a message
-means that nobody other than the intended recipient(s) can read the message;
-authenticity of a message means that the recipient(s) can be confident that the
-message comes from a particular source and has not been tampered with or
-altered. An important notion is the idea of <span class="term">proof</span> - of demonstrating to a
-recipient that something is true beyond reasonable doubt in a way that the
-recipient can easily verify. A <span class="term">message</span> is a sequence of symbols; symbols
-in this context will usually be bytes, although they may also be letters or
-individual bits.
+Cryptography is a school of study primarily concerned with two goals: <span
+class="term">confidentiality</span> and <span class="term">authenticity</span>.
+Confidentiality of a message means that nobody other than the intended
+recipient(s) can read the message; authenticity of a message means that the
+recipient(s) can be confident that the message comes from a particular source
+and has not been tampered with or altered. An important notion is the idea of
+<span class="term">proof</span> - of demonstrating to a recipient that something
+is true beyond reasonable doubt in a way that the recipient can easily verify. A
+<span class="term">message</span> is a sequence of symbols; symbols in this
+context will usually be bytes, although they may also be letters or individual
+bits.
 </p>
 
 <p>
-First, let's introduce our cast of characters. <span class="term">Alice</span>, <span class="term">Bob</span>,
-<span class="term">Charlie</span> and <span class="term">Dave</span> are users of cryptographic protocols; they are
-trying to send messages to one another or prove things to each other. <span class="term">Eve</span>
-is a malicious eavesdropper; she can listen to messages as they pass between
-users of protocols, but cannot modify them. <span class="term">Mallory</span> is a
-<span class="term">man-in-the-middle</span>; Mallory can not only listen to messages passing
-between users, but also modify them. Sometimes, <span class="term">Trent</span> will make an
-appearance; Trent is a third party that all users of a protocol trust
-implicitly. Trent might be a bank or a government in some examples.
+First, let's introduce our cast of characters. <span class="term">Alice</span>,
+<span class="term">Bob</span>, <span class="term">Charlie</span> and <span
+class="term">Dave</span> are users of cryptographic protocols; they are trying
+to send messages to one another or prove things to each other. <span
+class="term">Eve</span> is a malicious eavesdropper; she can listen to messages
+as they pass between users of protocols, but cannot modify them. <span
+class="term">Mallory</span> is a <span class="term">man-in-the-middle</span>;
+Mallory can not only listen to messages passing between users, but also modify
+them. Sometimes, <span class="term">Trent</span> will make an appearance; Trent
+is a third party that all users of a protocol trust implicitly. Trent might be a
+bank or a government in some examples.
 </p>
 
 <p>
 Now let's talk (abstractly) about the classes of primitives cryptography deals
 in. Broadly speaking, we can divide cryptographic primitives into three classes:
-<span class="term"><a href="#hash">hash functions</a></span>, <span class="term"><a href="#symm">symmetric
-ciphers</a></span>, and <span class="term"><a href="#asymm">asymmetric ciphers</a></span>. A
-<span class="term">cipher</span> is a pair of functions, called an <span class="term">encryption function</span> and a
-<span class="term">decryption function</span>; the encryption function accepts a <span class="term">plaintext</span>
-(unencrypted message) and a <span class="term">key</span>, and produces a <span class="term">ciphertext</span>
+<span class="term"><a href="#hash">hash functions</a></span>, <span
+class="term"><a href="#symm">symmetric ciphers</a></span>, and <span
+class="term"><a href="#asymm">asymmetric ciphers</a></span>. A <span
+class="term">cipher</span> is a pair of functions, called an <span
+class="term">encryption function</span> and a <span class="term">decryption
+function</span>; the encryption function accepts a <span
+class="term">plaintext</span> (unencrypted message) and a <span
+class="term">key</span>, and produces a <span class="term">ciphertext</span>
 (encrypted message), and the decryption function accepts a ciphertext and a key
 (not necessarily the same as was provided to the encryption function) and
 produces the original plaintext.
@@ -49,12 +55,13 @@ produces the original plaintext.
 
 <p><span class="term"><a name="hash" href="#hash">Hash Functions</a></span></p>
 <p>
-A <span class="term">hash function</span> turns a message of any length into a string of fixed
-length, called a <span class="term">hash</span>, <span class="term">digest</span>, or <span class="term">fingerprint</span>. A hash
+A <span class="term">hash function</span> turns a message of any length into a
+string of fixed length, called a <span class="term">hash</span>, <span
+class="term">digest</span>, or <span class="term">fingerprint</span>. A hash
 function is a function in the mathematical sense, meaning that its output is
 entirely determined by its input, so the same message will always have the same
-hash. A simple example of a <span class="term">non-cryptographic</span> hash function of a sequence
-<tt>S_0, S_1, ... S_n</tt> of bytes might be:
+hash. A simple example of a <span class="term">non-cryptographic</span> hash
+function of a sequence <tt>S_0, S_1, ... S_n</tt> of bytes might be:
 </p>
 
 <p><code>
@@ -65,33 +72,34 @@ hash. A simple example of a <span class="term">non-cryptographic</span> hash fun
 This example hash function takes a message of any length and produces a string
 of fixed length; in this case, the hash is 8 bits long. We can see how we could
 use this function to detect <em>accidental</em> errors when transmitting a
-message: if we computed the hash <tt>simple-hash(m)</tt> of a message <tt>m</tt> we
-wished to send and sent that as well, if <tt>m</tt> were accidentally corrupted,
-we would be quite likely to notice, since the recipient would be able to compute
-<tt>simple-hash</tt> of the corrupted <tt>m</tt> and see that it did not match our
-<tt>simple-hash(m)</tt>. However, if Mallory were modifying <tt>m</tt>, she could
-also quite simply modify <tt>m</tt> to produce <tt>m'</tt> (pronounced "m
-prime") in such a way that <tt>simple-hash(m')</tt> was equal to <tt>simple-hash(m)</tt>.
-The fact that this is easy to do for Mallory is part of what makes
-<tt>simple-hash</tt> a non-cryptographic hash.
+message: if we computed the hash <tt>simple-hash(m)</tt> of a message <tt>m</tt>
+we wished to send and sent that as well, if <tt>m</tt> were accidentally
+corrupted, we would be quite likely to notice, since the recipient would be able
+to compute <tt>simple-hash</tt> of the corrupted <tt>m</tt> and see that it did
+not match our <tt>simple-hash(m)</tt>. However, if Mallory were modifying
+<tt>m</tt>, she could also quite simply modify <tt>m</tt> to produce <tt>m'</tt>
+(pronounced "m prime") in such a way that <tt>simple-hash(m')</tt> was equal to
+<tt>simple-hash(m)</tt>.  The fact that this is easy to do for Mallory is part
+of what makes <tt>simple-hash</tt> a non-cryptographic hash.
 </p>
 
 <p>
-A <span class="term">cryptographic hash</span> has to be resistant to such attempts at
-manipulation. In fact, a cryptographic hash function <tt>H</tt> should have
-these four properties:
+A <span class="term">cryptographic hash</span> has to be resistant to such
+attempts at manipulation. In fact, a cryptographic hash function <tt>H</tt>
+should have these four properties:
 <ul>
- <li>Given <tt>m</tt>, it is easy to compute <tt>H(m)</tt>. There is no common
-     name for this property, but we'll call it <span class="term">image easiness</span>.</li>
- <li>Given a hash value <tt>h</tt>, it is difficult to compute any <tt>m</tt>
-     such that <tt>H(m)</tt> is equal to <tt>h</tt>. This property is called
-     <span class="term">preimage resistance</span>.</li>
- <li>Given <tt>m</tt>, it is difficult to compute <tt>m'</tt> such that
-     <tt>H(m)</tt> and <tt>H(m')</tt> are equal. This property is called
-     <span class="term">second preimage resistance</span>.</li>
- <li>It is difficult to find <tt>m</tt> and <tt>m'</tt> such that <tt>H(m)</tt>
-     and <tt>H(m')</tt> are equal. This property is called <span class="term">collision
-     resistance</span>.</li>
+<li>Given <tt>m</tt>, it is easy to compute <tt>H(m)</tt>. There is no common
+name for this property, but we'll call it <span class="term">image
+easiness</span>.</li>
+<li>Given a hash value <tt>h</tt>, it is difficult to compute any <tt>m</tt>
+such that <tt>H(m)</tt> is equal to <tt>h</tt>. This property is called <span
+class="term">preimage resistance</span>.</li>
+<li>Given <tt>m</tt>, it is difficult to compute <tt>m'</tt> such that
+<tt>H(m)</tt> and <tt>H(m')</tt> are equal. This property is called <span
+class="term">second preimage resistance</span>.</li>
+<li>It is difficult to find <tt>m</tt> and <tt>m'</tt> such that <tt>H(m)</tt>
+and <tt>H(m')</tt> are equal. This property is called <span
+class="term">collision resistance</span>.</li>
 </ul>
 </p>
 
@@ -147,46 +155,50 @@ wide use:
 
 <p>
 Now let's look at some applications of hash functions. Let's suppose that Alice
-is talking to Bob over a <span class="term">secure channel</span> (that is to say, Alice and Bob's
-messages to each other are authenticated and confidential). Alice has downloaded
-a large file from a particular website (a Linux install image, for example) and
-found it satisfactory, and is recommending the same website to Bob to download
-the same image. Bob can download the file from that site as well, but Bob has no
-easy way to tell that he got the same file that Alice did without sending the
-entire file over the secure channel so one of the parties can compare them.
-Enter the hash function! Instead of sending the entire file to Bob so he can
-compare, Alice can compute a hash of the copy she has, then send the hash to Bob
-over their secure channel; Bob can compute the hash of the copy he has and check
-that the two hashes are equivalent. If the two hashes are equivalent, Bob can be
-extremely confident that he has the same file. This is an application of
-<span class="term">second preimage resistance</span> of the hash function Alice and Bob are using;
-given the satisfactory copy Alice has (<tt>m</tt>), it would be very difficult
-for either the mirror or Mallory (who could be corrupting Bob's download) to
-find a corrupted copy <tt>m'</tt> such that <tt>h(m) = h(m')</tt>.
+is talking to Bob over a <span class="term">secure channel</span> (that is to
+say, Alice and Bob's messages to each other are authenticated and confidential).
+Alice has downloaded a large file from a particular website (a Linux install
+image, for example) and found it satisfactory, and is recommending the same
+website to Bob to download the same image. Bob can download the file from that
+site as well, but Bob has no easy way to tell that he got the same file that
+Alice did without sending the entire file over the secure channel so one of the
+parties can compare them.  Enter the hash function! Instead of sending the
+entire file to Bob so he can compare, Alice can compute a hash of the copy she
+has, then send the hash to Bob over their secure channel; Bob can compute the
+hash of the copy he has and check that the two hashes are equivalent. If the two
+hashes are equivalent, Bob can be extremely confident that he has the same file.
+This is an application of <span class="term">second preimage resistance</span>
+of the hash function Alice and Bob are using; given the satisfactory copy Alice
+has (<tt>m</tt>), it would be very difficult for either the mirror or Mallory
+(who could be corrupting Bob's download) to find a corrupted copy <tt>m'</tt>
+such that <tt>h(m) = h(m')</tt>.
 </p>
 
 <p>
-Another application of hash functions it to produce a <span class="term">proof of foreknowledge</span>.
-Let's suppose that Alice has insider knowledge of an event that will happen in
-the future, and wants to be able to prove to Bob that she knew about that event
-in advance when it happens without telling Bob anything about the event in
-advance. Alice can write a message <tt>m</tt> describing the event, then give
-Bob <tt>h(m)</tt>; when the event happens, Alice can reveal <tt>m</tt> to Bob,
-and Bob can be confident that Alice had produced <tt>m</tt> when she originally
-gave him <tt>h(m)</tt>, as a result of the preimage resistance of <tt>h</tt>.
+Another application of hash functions it to produce a <span class="term">proof
+of foreknowledge</span>.  Let's suppose that Alice has insider knowledge of an
+event that will happen in the future, and wants to be able to prove to Bob that
+she knew about that event in advance when it happens without telling Bob
+anything about the event in advance. Alice can write a message <tt>m</tt>
+describing the event, then give Bob <tt>h(m)</tt>; when the event happens, Alice
+can reveal <tt>m</tt> to Bob, and Bob can be confident that Alice had produced
+<tt>m</tt> when she originally gave him <tt>h(m)</tt>, as a result of the
+preimage resistance of <tt>h</tt>.
 </p>
 
 <p><span class="term"><a name="symm" href="#symm">Symmetric Ciphers</a></span></p>
 <p>
 So far we've seen hash functions and their applications for authenticity and
-proofs, but we haven't yet seen a way to get confidentiality. Enter <span class="term">symmetric
-ciphers</span>. A cipher is a pair of functions <span class="term"><tt>E(k,m)</tt></span> (which
-encrypts a plaintext message <tt>m</tt> with a key <tt>k</tt> to produce a
-ciphertext, often called <tt>c</tt> in examples) and <span class="term"><tt>D(k,c)</tt></span>
-(which decrypts a ciphertext message <tt>c</tt> with a key <tt>k</tt> to produce
-a plaintext message <tt>m</tt>). A cipher is <span class="term">symmetric</span> if the same key
-<tt>k</tt> is used for both encryption and decryption. A symmetric cipher has
-the property that <span class="term"><tt>D(k,E(k,m)) = m</tt></span>.
+proofs, but we haven't yet seen a way to get confidentiality. Enter <span
+class="term">symmetric ciphers</span>. A cipher is a pair of functions <span
+class="term"><tt>E(k,m)</tt></span> (which encrypts a plaintext message
+<tt>m</tt> with a key <tt>k</tt> to produce a ciphertext, often called
+<tt>c</tt> in examples) and <span class="term"><tt>D(k,c)</tt></span> (which
+decrypts a ciphertext message <tt>c</tt> with a key <tt>k</tt> to produce a
+plaintext message <tt>m</tt>). A cipher is <span class="term">symmetric</span>
+if the same key <tt>k</tt> is used for both encryption and decryption. A
+symmetric cipher has the property that <span class="term"><tt>D(k,E(k,m)) =
+m</tt></span>.
 </p>
 
 <p>
