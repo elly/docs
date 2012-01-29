@@ -47,7 +47,8 @@ ciphers</a></b>, and <b><a href="#asymm">asymmetric ciphers</a></b>. A
 produces the original plaintext.
 </p>
 
-<p><a name="hash" />
+<p><b><a name="hash" href="#hash">Hash Functions</a></b></p>
+<p>
 A <b>hash function</b> turns a message of any length into a string of fixed
 length, called a <b>hash</b>, <b>digest</b>, or <b>fingerprint</b>. A hash
 function is a function in the mathematical sense, meaning that its output is
@@ -164,7 +165,101 @@ for either the mirror or Mallory (who could be corrupting Bob's download) to
 find a corrupted copy <tt>m'</tt> such that <tt>h(m) = h(m')</tt>.
 </p>
 
-<p><a name="symm" />
+<p>
+Another application of hash functions it to produce a <b>proof of foreknowledge</b>.
+Let's suppose that Alice has insider knowledge of an event that will happen in
+the future, and wants to be able to prove to Bob that she knew about that event
+in advance when it happens without telling Bob anything about the event in
+advance. Alice can write a message <tt>m</tt> describing the event, then give
+Bob <tt>h(m)</tt>; when the event happens, Alice can reveal <tt>m</tt> to Bob,
+and Bob can be confident that Alice had produced <tt>m</tt> when she originally
+gave him <tt>h(m)</tt>, as a result of the preimage resistance of <tt>h</tt>.
 </p>
+
+<p><b><a name="symm" href="#symm">Symmetric Ciphers</a></b></p>
+<p>
+So far we've seen hash functions and their applications for authenticity and
+proofs, but we haven't yet seen a way to get confidentiality. Enter <b>symmetric
+ciphers</b>. A cipher is a pair of functions <b><tt>E(k,m)</tt></b> (which
+encrypts a plaintext message <tt>m</tt> with a key <tt>k</tt> to produce a
+ciphertext, often called <tt>c</tt> in examples) and <b><tt>D(k,c)</tt></b>
+(which decrypts a ciphertext message <tt>c</tt> with a key <tt>k</tt> to produce
+a plaintext message <tt>m</tt>). A cipher is <b>symmetric</b> if the same key
+<tt>k</tt> is used for both encryption and decryption. A symmetric cipher has
+the property that <b><tt>D(k,E(k,m)) = m</tt></b>.
+</p>
+
+<p>
+A simple (and historic) example of a symmetric cipher is the <b>Caesar
+cipher</b>. The Caesar cipher operates on a stream of bytes and uses a one-byte
+key, and has the following E and D functions:
+</p>
+
+<p><pre>
+  E(k,m) = { m_i + k for m_i in m }
+  D(k,c) = { c_i - k for c_i in c }
+</pre></p>
+
+<p>
+That is to say: to encrypt, add k to each byte in the message, mod 256; to
+decrypt, subtract k from each byte in the message, mod 256. It's easy to see how
+we might go about recovering <tt>m</tt> given <tt>E(...,m)</tt>: we can just try
+all 256 possible values of k and see which value of <tt>D(k,E(...,m))</tt> looks
+sensible. This attack is known as <b>brute force</b> - the process of attacking
+a cryptographic algorithm by trying all the possible values for some secret
+value. It is important to note that <b>all</b> cryptographic systems are
+<i>eventually</i> breakable by brute force (with some <a href="#otp">notable
+exceptions</a>), but for cryptographic systems used in practice, brute force
+often requires too much work to be a feasible attack.
+</p>
+
+<p><a name="otp" />
+Let's discuss another historic symmetric cipher: the <b>one-time pad</b>. In
+order to use a one-time pad on a message <tt>m</tt>, we need a key <tt>k</tt> of
+the same length as the message <tt>m</tt>; the encryption and decryption
+functions are then:
+</p>
+
+<p><pre>
+  E(k,m) = { m_i ^ k_i for m_i in m }
+  D(k,c) = { c_i ^ k_i for c_i in c }
+</pre></p>
+
+<p>
+You'll notice that E and D have the same definition: this is a consequence of
+the <tt>^</tt> (xor) operator, which has the property that <tt>x ^ y ^ y =
+x<tt>. Encryption using one-time pads is <i>unbreakable</i> under certain (very
+strict) assumptions about use of the cipher:
+</p>
+<p><ul>
+ <li>The key must be truly random, so that it is impossible for the attacker to
+     predict any bit of the key.</li>
+ <li>No byte of the key may ever be reused, either for this message or any
+     other</li>
+ <li>The key must be kept secret</li>
+</ul></p>
+
+<p>
+Under these assumptions, one-time pads have the <b>perfect secrecy</b> property;
+the ciphertext contains no information about the plaintext. A practical result
+of this is that brute force is impossible: by changing which key is chosen,
+<i>any</i> plaintext can be decrypted from a given ciphertext, so brute force is
+impossible; we have no way of detecting the correct message unless we know it in
+advance. More concretely, suppose an attacker tries to decrypt <tt>E(k,m)</tt>
+with some other key <tt>k'</tt>:
+</p>
+
+<p><pre>
+  m = "hello"  = { 0x68, 0x65, 0x6c, 0x6c, 0x6f }
+  k            = { 0xda, 0xf0, 0x88, 0x1a, 0x27 }
+  E(k,m)       = { 0xb2, 0x95, 0xe4, 0x76, 0x48 }
+  k'           = { 0xdf, 0xfc, 0x97, 0x02, 0x31 }
+  m' = "misty" = { 0x6d, 0x69, 0x73, 0x74, 0x79 }
+</pre></p>
+
+<p>
+Unfortunately, one-time pads are very difficult to use in practice.
+</p>
+
  </body>
 </html>
