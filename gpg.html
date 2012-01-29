@@ -1,0 +1,171 @@
+<html>
+ <head>
+  <link rel="stylesheet" type="text/css" href="mono.css" />
+ </head>
+ <body>
+<p>
+A gpg key can serve two purposes: confidentiality and authentication.
+Confidentiality means that nobody other than the intended recipient can read the
+message; authentication means the message provably came from the supposed
+source. Encryption is used to ensure confidentiality and signing is used to
+ensure authentication.
+</p>
+<p>
+First, you will need a key:
+</p>
+
+<p><pre>
+  gpg --gen-key
+</pre></p>
+
+<p>
+You will be prompted for a key type; choose the default. A key size of 2048 or
+4096 bits is probably safe. You will probably want your key not to expire, at
+least at first, so choose '0' for no expiry time. Now enter a real name, email
+address, and comment; these are visible to everyone and form your key's
+human-friendly name. Choose a passphrase. <b>Do not</b> use a passphrase you
+have used anywhere else. Anyone with this passphrase and access to the file your
+key is stored in can use it to read messages encrypted to you and forge
+authenticated messages from you.
+</p>
+
+<p>
+gpg may ask you for more entropy; if so, just use your machine normally and wait
+while it gathers it. gpg will then emit a few lines like this:
+</p>
+
+<p><pre>
+pub   2048R/12345678 <date>
+      key fingerprint = A4CF D9E3 9018 E254 67F7  99D9 2D76 F7F2 1234 5678
+uid                  Your Name (Your Comment) &lt;your@email.net&gt;
+sub   2048R/9ABCDEF0 <date>
+</pre></p>
+
+<p>
+The number after '2048R' (or 4096R if you made a 4096-bit key) is your key id.
+This is a short number useful for looking up a key in a relatively unambiguous
+way. You can find it out again with:
+</p>
+
+<p><pre>
+  gpg --list-keys your@email.net
+</pre></p>
+
+<p>
+You can see all the keys gpg knows about by just not specifying an email
+address there. Now you'll want to upload your key to a keyserver so that other
+people can easily fetch it:
+</p>
+
+<p><pre>
+  gpg --send-keys 12345678
+</pre></p>
+
+<p>
+Now suppose that you have met a person (in meatspace or some other secure
+channel) and you wish to get their key and verify it for later use. They will
+say to you "my key ID is 84736251", for example, and you can fetch their key:
+</p>
+
+<p><pre>
+  gpg --recv-keys 84736251
+</pre></p>
+
+<p>
+However, you have no assurance that the key was not tampered with either in
+transit or on the key server. In order to make sure it wasn't, you need to check
+the fingerprint of the key, which is a cryptographic checksum. You can find the
+fingerprint for a key with:
+</p>
+
+<p><pre>
+  gpg --fingerprint --list-keys 84736251
+</pre></p>
+
+<p>
+You and the person whose key it is should both run that command, then compare
+the listed key fingerprints. If they match, the key has not been tampered with
+and can be used. You can indicate that you believe the key is valid by signing
+it. By signing a key you certify that that key belongs to the owner of the
+listed email address. You can sign your friend's key like this:
+</p>
+
+<p><pre>
+  gpg --sign-key 84736251
+</pre></p>
+
+<p>
+You will be prompted to confirm that you really mean to sign the key. Signing a
+key indicates that to the best of your knowledge, the owner of that key is also
+the owner of that email address. Signing keys is <b>crucially important</b> for
+allowing people who have not met in person to nonetheless communicate securely.
+</p>
+
+<p>
+Once you have signed their key, you can upload your signature by sending their
+key:
+</p>
+
+<p><pre>
+  gpg --send-key 84736251
+</pre></p>
+
+<p>
+From now on, anyone who receives that key (using --recv-key) will have your
+signature of authenticity attached to it. You can test that your signature is
+there:
+</p>
+
+<p><pre>
+  gpg --list-sigs 84736251
+</pre></p>
+
+<p>
+Now you and your friend have exchanged keys and are ready to send encrypted,
+signed email to each other. Write a message to your friend and save it in a file
+called 'message'. Now run:
+</p>
+
+<p><pre>
+  gpg --sign --encrypt --armor --recipient 84736251 message
+</pre></p>
+
+<p>
+You will be prompted for your passphrase, and then gpg will generate a file
+called 'message.asc' in the current directory. This is the encrypted signed
+message. Your friend can now decrypt the message:
+</p>
+
+<p><pre>
+  gpg --decrypt message.asc
+</pre></p>
+
+<p>
+This will emit the decrypted message to your terminal. If you want to save it to
+a file, use the --output option:
+</p>
+
+<p><pre>
+  gpg --output somefile --decrypt message.asc
+</pre></p>
+
+<p>
+In both cases, they will be prompted for their passphrase to decrypt the
+message. Now they can reply to you:
+</p>
+
+<p><pre>
+  gpg --sign --encrypt --armor --recipient 12345678 othermessage
+</pre></p>
+
+<p>
+And you can decrypt their reply:
+</p>
+
+<p><pre>
+  gpg --decrypt othermessage.asc
+</pre></p>
+
+<p>
+Good luck :)
+</p>
