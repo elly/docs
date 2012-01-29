@@ -258,7 +258,14 @@ with some other key <tt>k'</tt>:
 </pre></p>
 
 <p>
-Unfortunately, one-time pads are very difficult to use in practice.
+Unfortunately, one-time pads are very difficult to use in practice. If Alice
+wishes to send a one-time-pad encrypted message to Bob, Alice and Bob must
+already have shared a one-time-pad key of sufficiently length to encrypt the
+entire message, which must have been generated randomly and kept secret by both
+of them. This is not infeasible - for example, Alice could have generated
+several gigabytes of random data, placed it on physical storage, and handed it
+to Bob in person at some earlier time - but it is difficult to do at scale and
+without a preexisting secure way to transfer keys.
 </p>
 
  </body>
