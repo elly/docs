@@ -144,6 +144,26 @@ wide use:
 </ul>
 </p>
 
+<p>
+Now let's look at some applications of hash functions. Let's suppose that Alice
+is talking to Bob over a <b>secure channel</b> (that is to say, Alice and Bob's
+messages to each other are authenticated and confidential). Alice has downloaded
+a large file from a particular website (a Linux install image, for example) and
+found it satisfactory, and is recommending the same website to Bob to download
+the same image. Bob can download the file from that site as well, but Bob has no
+easy way to tell that he got the same file that Alice did without sending the
+entire file over the secure channel so one of the parties can compare them.
+Enter the hash function! Instead of sending the entire file to Bob so he can
+compare, Alice can compute a hash of the copy she has, then send the hash to Bob
+over their secure channel; Bob can compute the hash of the copy he has and check
+that the two hashes are equivalent. If the two hashes are equivalent, Bob can be
+extremely confident that he has the same file. This is an application of
+<b>second preimage resistance</b> of the hash function Alice and Bob are using;
+given the satisfactory copy Alice has (<tt>m</tt>), it would be very difficult
+for either the mirror or Mallory (who could be corrupting Bob's download) to
+find a corrupted copy <tt>m'</tt> such that <tt>h(m) = h(m')</tt>.
+</p>
+
 <p><a name="symm" />
 </p>
  </body>
