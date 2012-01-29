@@ -394,5 +394,41 @@ such kinds of attacks:
      she can adapt her attack to things she has learned earlier.</li>
 </ul></p>
 
+<p>
+Unfortunately, as with hash functions, existing block ciphers are too
+complicated to describe concisely, and attempting to do so would betray an
+embarassing lack of mathematical sophistication on the author's part, so it will
+have to suffice to list some that are in common use:
+</p>
+
+<p><ul>
+ <li><b>DES</b>, short for Data Encryption Standard, is an obsolete cipher
+     originally designed by IBM with help from the NSA and published in 1977.
+     DES uses a 56-bit key to operate on 64-bit blocks, and is notoriously
+     irritating to implement in software. In spite of its advanced age and the
+     extreme academic scrutiny visited upon it, no feasible attacks better than
+     brute force are known. Unfortunately, DES' key length is inadequate, and
+     modern machines can successfully break DES keys in less than 24 hours for a
+     relatively modest amount of money. DES is obsolete and should not be used
+     for new protocols.</li>
+ <li><b>3-DES</b>, or Triple-DES, is a block cipher using either 168-bit or
+     112-bit key and applying DES multiple times. There are no known feasible
+     attacks on Triple-DES, but it is also obsolete and should not be
+     used.</li>
+ <li><b>AES</b> (formerly known as <b>Rijndael</b>, short for Advanced
+     Encryption Standard) is a block cipher operating on a 128-bit block with a
+     128, 192, or 256-bit key. There are no feasible attacks on AES, and it is
+     the most widely-used symmetric cipher for new protocols.</li>
+ <li><b>Blowfish</b>, designed by cryptographer Bruce Schneier, operates on a
+     64-bit block and has a variable key length of up to 448 bits. There are no
+     known feasible attacks on Blowfish, but it is less popular than AES.</li>
+</ul></p>
+
+<p>
+Applications of symmetric ciphers are easy to find: they are quite fast
+(hundreds of megabytes per second or more on modern hardware) and there are no
+known attacks on the best ciphers with appropriately-chosen keys.
+</p>
+
  </body>
 </html>
