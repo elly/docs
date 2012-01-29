@@ -268,5 +268,131 @@ to Bob in person at some earlier time - but it is difficult to do at scale and
 without a preexisting secure way to transfer keys.
 </p>
 
+<p>
+Both of the previous ciphers are called <b>stream ciphers</b>: they operate on a
+stream of data of arbitrary length. Many modern symmetric ciphers are <b>block
+ciphers</b> instead, which operate on fixed-size blocks of data. A block cipher
+operates on a <b>block</b> of fixed length at a time. A block cipher has an
+encryption and decryption function, but instead of accepting arbitrary-length
+plaintext and ciphertext, they accept single blocks at a time, and produce
+single blocks. An example of a simple (and <i>extremely</i> insecure) block
+cipher might be the following function, which accepts a 128-bit key and a
+128-bit block:
+</p>
+
+<p><pre>
+  simple-block-E(k[16],m[16]) = { m_i ^ k_i for m_i in m }
+  simple-block-D(k[16],m[16]) = { m_i ^ k_i for m_i in m }
+</pre></p>
+
+<p>
+Note that this cipher is essentially a constrained version of the one-time-pad
+cipher given above. An additional question with a block cipher is how to encrypt
+messages of more than one block, which introduces the concept of a <b>mode</b>
+of a block cipher. When discussing these ciphers, we'll break the message
+<tt>m</tt> into a sequence of blocks <tt>m_0, m_1, ..., m_n</tt> (and the
+ciphertext <tt>c</tt> into a sequence of blocks <tt>c_0, c_1, ..., c_n</tt>).
+The simplest mode is called <b>ECB</b>, which is short for <b>electronic code
+book</b>; in this mode, plaintext is encrypted by encrypting successive blocks
+of it with the cipher's encryption function, and ciphertext is decrypted by
+decrypting successive blocks with the cipher's decryption function.  ECB looks
+like this:
+</p>
+
+<p><pre>
+  simple-ecb-E(k[16],m_i) = simple-block-E(k,m_i)
+  simple-ecb-D(k[16],c_i) = simple-block-D(k,c_i)
+</pre></p>
+
+<p>
+There's an alarming property inherent in simple-ecb-E: If our plaintext
+<tt>m</tt> contains two blocks <tt>m_i</tt> and <tt>m_j</tt> that are
+equivalent, then <tt>c_i</tt> and <tt>c_j</tt> will be equivalent - and as a
+further consequence, if Mallory knows some <tt>m_i</tt>, she can copy the
+corresponding <tt>c_i</tt> over <tt>c_j</tt> to replace <tt>m_j</tt> with
+<tt>m_i</tt>!. This discovery motivates the second block cipher mode, which is
+called <b>CBC</b> (short for <b>cipher block chaining</b>). In CBC, a dependency
+exists between each block of ciphertext and all of those before it. CBC looks
+like this:
+</p>
+
+<p><pre>
+  simple-cbc-E(k[16],m_i) = simple-block-E(k,m_i ^ c_{i - 1})
+  simple-cbc-D(k[16],c_i) = simple-block-D(k,c_i) ^ c_{i - 1}
+</pre></p>
+
+<p>
+You'll notice that as this mode is given right now, there is no way to encrypt
+c_0, since there's no c_{-1}. Therefore, we introduce a fake block at c_{-1},
+which we call the <b>initialization vector</b>, or <b>IV</b> for short. This
+fake block is prepended to the message before it is sent, where the sender can
+decrypt it and use it for CBC. CBC is widely used, but has some disadvantages:
+</p>
+
+<p><ul>
+ <li>Since each block depends on the block before it, encryption cannot be
+     parallelized.</li>
+ <li>Since each block depends on the block before it, it is not possible to
+     change part of a large message encrypted with a block cipher in the CBC
+     mode without re-encrypting all the subsequent parts of the plaintext.</li>
+</ul></p>
+
+<p>
+There are a great many other block cipher modes, which are too numerous to list
+or discuss here, but it is worth calling out one more, which is called
+<b>CTR</b> (short for <b>counter</b>) mode. CTR mode turns a block cipher into a
+stream cipher by using the block cipher to generate a stream of bytes to xor
+with the plaintext. To use CTR mode, one chooses a <b>nonce</b> (short for
+"number used once") and a <b>counter</b>. We can then generate a key stream by
+encrypting successive values of the nonce combined with the counter. Let the
+generated key <tt>k'</tt> have length equal to the length of <tt>m</tt>, and let
+<tt>k'</tt> be composed of blocks <tt>k'_0, k'_1, ..., k'_n</tt>. Then:
+</p><pre>
+  k'_i = simple-block-E(k,nonce + i)
+</pre><p>
+
+<p>
+We can now xor <tt>k'</tt> with <tt>m</tt> to produce <tt>c</tt>, and send
+<tt>c</tt> and <tt>nonce</tt> to the recipient; the recipient can then
+reconstruct <tt>k'</tt> using the same process and compute <tt>c ^ k' = m</tt>.
+Note that for CTR mode to be secure, the underlying block cipher used must make
+<b>key recovery</b> difficult. Key recovery is the ability to derive <tt>k</tt>
+given <tt>m</tt> and <tt>E(k,m)</tt>. The example block cipher we've been using
+here does not have this property, since <tt>k = m ^ E(k,m)</tt>.
+</p>
+
+<p>
+Since <tt>simple</tt> does not have this property, if Alice encrypts any block
+of plaintext known to Eve, Eve learns both <tt>c_i</tt> and <tt>m_i</tt>, which
+allows her to derive <tt>simple-block-E(k,nonce + i) = c_i ^ m_i</tt>, and since
+the Eve knows both the <tt>nonce</tt> and <tt>i</tt>, they can compute
+<tt>k</tt>. This is what is called a <b>known-plaintext attack</b> - where
+knowing part of the plaintext allows Eve to recover the rest. There are a few
+such kinds of attacks:
+</p>
+
+<p><ul>
+ <li>In a <b>ciphertext-only</b> attack, Eve is assumed to have access only to
+     ciphertexts sent between Alice and Bob.</li>
+ <li>In a <b>known-plaintext</b> attack, Eve is assumed to have access to some
+     plaintexts and their corresponding ciphertexts sent between Alice and Bob,
+     and to be attempting to decrypt other ciphertexts sent between them using
+     the same key. As explained above, the <tt>simple</tt> block cipher is
+     vulnerable to this attack.</li>
+ <li>In a <b>chosen-plaintext</b> attack, Eve is assumed to be able to cause
+     Alice or Bob to encrypt plaintext of her choosing with their key. The
+     <tt>simple</tt> block cipher is also extremely vulnerable to this attack -
+     in the extreme case, if Eve can cause Alice or Bob to encrypt a block of
+     all zero bytes, the resulting ciphertext will be equal to their key.</li>
+ <li>Similarly, in a <b>chosen-ciphertext</b> attack, Eve is assumed to be able
+     to cause Alice or Bob to decrypt ciphertext of her choosing with their key.
+     The <tt>simple</tt> block cipher is similarly vulnerable to this attack -
+     if Eve can cause Alice or Bob to decrypt a ciphertext block composed of
+     all zero bytes, the resulting plaintext will be equal to their key.</li>
+ <li>In an <b>adaptive</b> attack, Eve is assumed to be able to supply
+     additional chosen plaintexts or ciphertexts after viewing previous ones, so
+     she can adapt her attack to things she has learned earlier.</li>
+</ul></p>
+
  </body>
 </html>
