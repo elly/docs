@@ -430,5 +430,112 @@ Applications of symmetric ciphers are easy to find: they are quite fast
 known attacks on the best ciphers with appropriately-chosen keys.
 </p>
 
+<p><b><a name="hmac" href="#hmac">HMAC</a></b></p>
+<p>
+It's worth taking a brief detour into a spiritual child of hash functions and
+symmetric ciphers: the <b>HMAC</b>, or <b>hashed message authentication
+code</b>. Earlier, we saw that hashes let Alice and Bob prove that messages had
+not been tampered with, but didn't allow them to authenticate messages between
+them; for example, if Alice runs a web server somewhere that has a file
+available for download and lists its hash, if Mallory compromises the server,
+she can upload her own version of the file and its corresponding hash. An HMAC
+is a way of using a hash function such that a hash can only be produced by
+someone who knows a particular secret key - so if Alice and Bob share a secret
+key, and Alice puts the HMAC of her file up instead of the hash of it, then Bob
+can verify the HMAC, and Mallory cannot generate a new valid HMAC as she lacks
+the secret key. HMAC is the name both of a class of constructions which turn
+hash functions into secret-key authentication functions and the name of a
+specific such construction, which I'll describe below.
+</p>
+
+<p>
+Let's try designing the simplest HMAC construction we can think of. Remembering
+from earlier that a good hash function has <b>preimage resistance</b> and
+<b>second preimage resistance</b>, we might try doing this (here, "||" is read
+as "concatenated with"):
+</p>
+
+<p><pre>
+  simple-hmac(h,k,m) = h(k || m)
+</pre></p>
+
+<p>
+Since <tt>h</tt> has preimage resistance, it should be hard for Mallory to
+derive <tt>k</tt> given <tt>h(k || m)</tt>, and since <tt>h</tt> has
+second-preimage resistance, it should be hard for Mallory to derive <tt>h(k ||
+m')</tt> given <tt>h(k || m)</tt>. Unfortunately, as the astute reader will have
+guessed from the name of the function, there's a problem. In order to explain,
+we'll have to delve a bit into the way modern hash functions are constructed.
+</p>
+
+<p>
+Modern hash functions are often built with a construction called the
+<b>Merkle-Damg&aring;rd construction</b>. The Merkle-Damg&aring;rd construction is
+spiritually similar to a block cipher mode - it turns a function called a
+<b>compression function</b>, which turns two fixed-length inputs into one
+fixed-length output, into a hash function, which turns one variable-length input
+into one fixed-length output. Merkle-Damg&aring;rd works as follows, given a
+compression function <tt>C</tt> and an IV <tt>I</tt>:
+</p>
+
+<p><ol>
+ <li>Let <tt>m' = m || len(m) || padding</tt>, where <tt>len</tt> returns a
+     fixed-width integer and <tt>padding</tt> is sufficient to make m' an
+     integral number of blocks. Call these blocks m'_0, m'_1, ... m'_n.</li>
+ <li>Let m'_{-1} = I</li>
+ <li>Let s_i = C(m_i, s_i)</li>
+ <li>Return s_n</li>
+</ol></p>
+
+<p>
+Merkle-Damg&aring;rd is popular, but it has one property which concerns us here: if h
+is a hash function using the Merkle-Damg&aring;rd construction, then given
+<tt>simple-hmac(h,k,m)</tt>, it is easy for Mallory to find
+<tt>simple-hmac(h,k,m || len(m) || padding || anything)</tt>. The reason for this is
+as follows: suppose Mallory knows <tt>simple-hmac(h,k,m)</tt>. She then really
+knows <tt>s_n</tt>, where <tt>s_n</tt> is the state of <tt>h</tt> after applying
+<tt>C</tt> to all of the blocks of <tt>m'</tt>. She can exploit this to
+undertake a <b>length-extension attack</b>: if she appends a new block m_{n + 1}
+to m', then re-appends the new length and padding after m_{n + 1}, she can
+easily compute <tt>s_{n + 1} = C(m_{n + 1}, s_n)</tt>. Therefore, the
+<tt>simple-hmac</tt> construction is not adequate - Mallory can append whatever
+she wants to authentic messages to produce new authentic messages.
+</p>
+
+<p>
+Enter the HMAC construction. The HMAC construction is as follows, with
+<tt>opad</tt> being the byte <tt>0x5c</tt> repeated enough times to form one
+block for the hash function, and <tt>ipad</tt> being the byte <tt>0x36</tt>
+being repeated enough times to form one block for the hash function:
+</p>
+
+<p><pre>
+  hmac(h,k,m) = h((k ^ opad) || h((k ^ ipad) || m))
+</pre></p>
+
+<p>
+The outer invocation of h protects the output state of the inner invocation of
+h, which makes length-extension attacks impossible, and since h((k ^ ipad) || m)
+has a fixed length, Mallory cannot use her knowledge of the final state of the
+outer invocation of h for a length-extension attack either. Instances of
+<tt>hmac</tt> with a specific hash value for <tt>h</tt> are often named as
+<tt>HMAC-&lt;name&gt;</tt> - e.g., <b>HMAC-SHA256</b>, <b>HMAC-MD5</b>, and so
+on.
+</p>
+
+<p>
+Applications of HMAC are again simple to find: if Alice and Bob share a key
+<tt>k</tt>, then Alice can send Bob a message <tt>m</tt> and
+<tt>HMAC-SHA256(k,m)</tt>; Bob, using <tt>k</tt>, can compute
+<tt>HMAC-SHA256(k,m)</tt> and verify that it matches what Alice sent, and
+therefore know that Alice sent <tt>m</tt>. Furthermore, Alice and Bob can
+actually use HMAC to distinguish messages and random data; if Alice, with a
+message <tt>m</tt> and a key <tt>k</tt>, produces <tt>c = E(k,m) ||
+HMAC-SHA256(k,E(k,m))</tt> and posts this value publicly, only Bob (possessing
+<tt>k</tt>) will be able to distinguish <tt>c</tt> from random data, since
+<tt>c</tt> has the property that its last 256 bits are the <tt>HMAC-SHA256</tt>
+of the rest of it under the secret key Alice and Bob share.
+</p>
+
  </body>
 </html>
