@@ -1,4 +1,7 @@
-<html>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
  <head>
   <link rel="stylesheet" type="text/css" href="mono.css" />
  </head>
@@ -8,33 +11,34 @@ This page is a basic primer on the <a href="#glossary">terminology</a> and <a
 href="#principles">principles</a> of cryptography.  The target audience is
 people familiar with the basics of computer science or mathematics. Caveat
 lector: The author is no more than an amateur cryptographer, and has no special
-qualifications of her own.
+qualifications of her own. Text in <span style="color:red">red</span> is a
+definition, and text in <span style="color:green">green</span> is code.
 </p>
 
-<p><a name="principles" />
-Cryptography is a school of study primarily concerned with two goals: <span
-class="term">confidentiality</span> and <span class="term">authenticity</span>.
+<p id="principles">
+Cryptography is a school of study primarily concerned with two goals: <i
+class="term">confidentiality</i> and <i class="term">authenticity</i>.
 Confidentiality of a message means that nobody other than the intended
 recipient(s) can read the message; authenticity of a message means that the
 recipient(s) can be confident that the message comes from a particular source
 and has not been tampered with or altered. An important notion is the idea of
-<span class="term">proof</span> - of demonstrating to a recipient that something
+<i class="term">proof</i> - of demonstrating to a recipient that something
 is true beyond reasonable doubt in a way that the recipient can easily verify. A
-<span class="term">message</span> is a sequence of symbols; symbols in this
+<i class="term">message</i> is a sequence of symbols; symbols in this
 context will usually be bytes, although they may also be letters or individual
 bits.
 </p>
 
 <p>
-First, let's introduce our cast of characters. <span class="term">Alice</span>,
-<span class="term">Bob</span>, <span class="term">Charlie</span> and <span
-class="term">Dave</span> are users of cryptographic protocols; they are trying
-to send messages to one another or prove things to each other. <span
-class="term">Eve</span> is a malicious eavesdropper; she can listen to messages
-as they pass between users of protocols, but cannot modify them. <span
-class="term">Mallory</span> is a <span class="term">man-in-the-middle</span>;
+First, let's introduce our cast of characters. <i class="term">Alice</i>,
+<i class="term">Bob</i>, <i class="term">Charlie</i> and <i
+class="term">Dave</i> are users of cryptographic protocols; they are trying
+to send messages to one another or prove things to each other. <i
+class="term">Eve</i> is a malicious eavesdropper; she can listen to messages
+as they pass between users of protocols, but cannot modify them. <i
+class="term">Mallory</i> is a <i class="term">man-in-the-middle</i>;
 Mallory can not only listen to messages passing between users, but also modify
-them. Sometimes, <span class="term">Trent</span> will make an appearance; Trent
+them. Sometimes, <i class="term">Trent</i> will make an appearance; Trent
 is a third party that all users of a protocol trust implicitly. Trent might be a
 bank or a government in some examples.
 </p>
@@ -42,87 +46,90 @@ bank or a government in some examples.
 <p>
 Now let's talk (abstractly) about the classes of primitives cryptography deals
 in. Broadly speaking, we can divide cryptographic primitives into three classes:
-<span class="term"><a href="#hash">hash functions</a></span>, <span
-class="term"><a href="#symm">symmetric ciphers</a></span>, and <span
-class="term"><a href="#asymm">asymmetric ciphers</a></span>.
+<i class="term"><a href="#hash">hash functions</a></i>, <i
+class="term"><a href="#symm">symmetric ciphers</a></i>, and <i
+class="term"><a href="#asymm">asymmetric ciphers</a></i>.
 </p>
 
-<p><span class="term"><a name="hash" href="#hash">Hash Functions</a></span></p>
+<h2 id="hash">Hash Functions <small>[<a href="#hash">link</a>]</small></h2>
 <p>
-A <span class="term">hash function</span> turns a message of any length into a
-string of fixed length, called a <span class="term">hash</span>, <span
-class="term">digest</span>, or <span class="term">fingerprint</span>. A hash
-function is a function in the mathematical sense, meaning that its output is
-entirely determined by its input, so the same message will always have the same
-hash. A simple example of a <span class="term">non-cryptographic</span> hash
-function of a sequence <tt>S_0, S_1, ... S_n</tt> of bytes might be:
+A <i class="term">hash function</i> turns a message of any length into a string
+of fixed length, called a <i class="term">hash</i>, <i class="term">digest</i>,
+or <i class="term">fingerprint</i>. A hash function is a function in the
+mathematical sense, meaning that its output is entirely determined by its input,
+so the same message will always have the same hash. A simple example of a <i
+class="term">non-cryptographic</i> hash function of a sequence
+<var>S<sub>0</sub></var>, <var>S<sub>1</sub></var>, ... <var>S<sub>n</sub></var> of bytes might be:
 </p>
 
-<p><code>
-  simple-hash(S) = (S_0 + S_1 + ... + S_n) mod 256
-</code></p>
+<pre><code>simple-hash(S) = (S<sub>0</sub> + S<sub>1</sub> + ... + S<sub>n</sub>) mod 256</code></pre>
 
 <p>
 This example hash function takes a message of any length and produces a string
 of fixed length; in this case, the hash is 8 bits long. We can see how we could
 use this function to detect <em>accidental</em> errors when transmitting a
-message: if we computed the hash <tt>simple-hash(m)</tt> of a message <tt>m</tt>
-we wished to send and sent that as well, if <tt>m</tt> were accidentally
+message: if we computed the hash <code>simple-hash(m)</code> of a message
+<var>m</var>
+we wished to send and sent that as well, if <var>m</var> were accidentally
 corrupted, we would be quite likely to notice, since the recipient would be able
-to compute <tt>simple-hash</tt> of the corrupted <tt>m</tt> and see that it did
-not match our <tt>simple-hash(m)</tt>. However, if Mallory were modifying
-<tt>m</tt>, she could also quite simply modify <tt>m</tt> to produce <tt>m'</tt>
-(pronounced "m prime") in such a way that <tt>simple-hash(m')</tt> was equal to
-<tt>simple-hash(m)</tt>.  The fact that this is easy to do for Mallory is part
-of what makes <tt>simple-hash</tt> a non-cryptographic hash.
+to compute <code>simple-hash</code> of the corrupted <var>m</var> and see that it did
+not match our <code>simple-hash(m)</code>. However, if Mallory were modifying
+<var>m</var>, she could also quite simply modify <var>m</var> to produce
+<var>m'</var>
+(pronounced "m prime") in such a way that <code>simple-hash(m')</code> was equal to
+<code>simple-hash(m)</code>.  The fact that this is easy to do for Mallory is part
+of what makes <code>simple-hash</code> a non-cryptographic hash.
 </p>
 
 <p>
-A <span class="term">cryptographic hash</span> has to be resistant to such
-attempts at manipulation. In fact, a cryptographic hash function <tt>H</tt>
+A <i class="term">cryptographic hash</i> has to be resistant to such
+attempts at manipulation. In fact, a cryptographic hash function <var>H</var>
 should have these four properties:
-<ul>
-<li>Given <tt>m</tt>, it is easy to compute <tt>H(m)</tt>. There is no common
-name for this property, but we'll call it <span class="term">image
-easiness</span>.</li>
-<li>Given a hash value <tt>h</tt>, it is difficult to compute any <tt>m</tt>
-such that <tt>H(m)</tt> is equal to <tt>h</tt>. This property is called <span
-class="term">preimage resistance</span>.</li>
-<li>Given <tt>m</tt>, it is difficult to compute <tt>m'</tt> such that
-<tt>H(m)</tt> and <tt>H(m')</tt> are equal. This property is called <span
-class="term">second preimage resistance</span>.</li>
-<li>It is difficult to find <tt>m</tt> and <tt>m'</tt> such that <tt>H(m)</tt>
-and <tt>H(m')</tt> are equal. This property is called <span
-class="term">collision resistance</span>.</li>
-</ul>
 </p>
+<dl>
+ <dt class="term">Efficiency
+ <dd>Given <var>m</var>, it is easy to compute <code>H(m)</code>.
+ <dt class="term">Preimage resistance
+ <dd>Given a hash value <var>h</var>, it is difficult to compute any
+     <var>m</var> such that <code>H(m) = h</code>.
+ <dt class="term">Second preimage resistance
+ <dd>Given <var>m</var>, it is difficult to compute <var>m'</var> such that
+     <code>H(m) = H(m')</code>.
+ <dt class="term">Collision resistance
+ <dd>It is difficult to find <var>m</var> and <var>m'</var> such that
+     <code>H(m) = H(m')</code>.
+</dl>
 
 <p>
-We can evaluate <tt>simple-hash</tt> by these criteria:
-<ul>
- <li><span class="term">Image easiness</span>: Yes. The algorithm given for
-     <tt>simple-hash</tt> is trivial to implement.</li>
- <li><span class="term">Preimage resistance</span>: No. Given any 8-bit value <tt>h</tt>, we can easily find
-     as many messages <tt>m</tt> as we like for which <tt>simple-hash(m) = h</tt>.
-     For example, <tt>simple-hash(h) = h</tt>, and <tt>simple-hash({h, 0}) = h</tt>, as
-     does <tt>simple-hash({h, 0, 0...})</tt>.</li>
- <li><span class="term">Second preimage resistance</span>: No, for the same reason as <tt>h</tt>
-     does not have preimage resistance.</li>
- <li><span class="term">Collision resistance</span>: No. For example,
-     <tt>simple-hash({15, 5}) = simple-hash({10, 10})</tt>.</li>
-</ul>
+We can evaluate <code>simple-hash</code> by these criteria:
 </p>
+
+<dl>
+ <dt>Efficiency:
+ <dd>Yes. The algorithm given for <code>simple-hash</code> is trivial to implement.
+ <dt>Preimage resistance
+ <dd>No. Given any 8-bit value <var>h</var>, we can easily find
+     as many messages <var>m</var> as we like for which <code>simple-hash(m) = h</code>.
+     For example, <code>simple-hash(h) = h</code>, and <code>simple-hash({h, 0})
+     = h</code>, as does <code>simple-hash({h, 0, 0...})</code>.
+ <dt>Second preimage resistance
+ <dd> No, for the same reason as <code>simple-hash</code> does not have preimage resistance.
+ <dt>Collision resistance
+ <dd>No. For example, <code>simple-hash({15, 5}) = simple-hash({10, 10})</code>.
+</dl>
 
 <p>
 There's something you might have noticed above: although it is easy, given some
-<tt>h</tt>, to find some <tt>m</tt> such that <tt>simple-hash(m) = h</tt>, if I give
-you <tt>h = simple-hash(m)</tt>, you have no way of finding the <em>specific</em> <tt>m</tt>
-that I used to compute <tt>h</tt>. It's easy to see why this is: <tt>m</tt> could
-have been a single byte equal to <tt>h</tt>, or two bytes that sum to <tt>h</tt>, or three bytes
-that sum to <tt>h</tt>, and so on. <tt>simple-hash</tt> actually has the following
-alarming property: for each one-byte value <tt>h</tt>, there are
-<em>infinitely</em> many values <tt>m_0, m_1, ...</tt> such that <tt>simple-hash(m_i) =
-h</tt>.
+<var>h</var>, to find some <var>m</var> such that <code>simple-hash(m) =
+h</code>, if I give you <code>h = simple-hash(m)</code>, you have no way of
+finding the <em>specific</em> <var>m</var> that I used to compute <var>h</var>.
+It's easy to see why this is: <var>m</var> could have been a single byte equal
+to <var>h</var>, or two bytes that sum to <var>h</var>, or three bytes that sum
+to <var>h</var>, and so on. <code>simple-hash</code> actually has the following
+alarming property: for each one-byte value <var>h</var>, there are
+<em>infinitely</em> many values <var>m<sub>0</sub></var>,
+<var>m<sub>1</sub></var>, ... such that
+<code>simple-hash(<var>m<sub>i</sub></var>) = h</code>.
 </p>
 
 <p>
@@ -131,16 +138,16 @@ highly technical (and, in fact, over the author's head, mathematically), so
 we'll restrict ourselves to looking at the current field of hash functions in
 wide use:
 <ul>
- <li><span class="term">MD5</span>: MD5 has been publicly broken and should not be used. In 2005,
+ <li><i class="term">MD5</i>: MD5 has been publicly broken and should not be used. In 2005,
      MD5's second-preimage resistance was broken. It produces a 128-bit hash
      value.</li>
- <li><span class="term">SHA-1</span>: SHA-1 was designed by the NSA and is similar to MD5
+ <li><i class="term">SHA-1</i>: SHA-1 was designed by the NSA and is similar to MD5
      design-wise; it has not yet been broken but is showing weaknesses and is <a
      href="csrc.nist.gov/groups/ST/toolkit/documents/shs/hash_standards_comments.pdf">deprecated
      by NIST</a>. It produces a 160-bit hash value.</li>
- <li><span class="term">SHA-2</span>: a generic name for a family of secure hash functions designed
+ <li><i class="term">SHA-2</i>: a generic name for a family of secure hash functions designed
      by the NSA to replace SHA-1. Specific functions in this family are
-     <span class="term">SHA-224</span>, <span class="term">SHA-256</span>, <span class="term">SHA-384</span>, and <span class="term">SHA-512</span>. These
+     <i class="term">SHA-224</i>, <i class="term">SHA-256</i>, <i class="term">SHA-384</i>, and <i class="term">SHA-512</i>. These
      functions have not (as of 2012) been successfully attacked, but an effort
      is under way to produce a standardized replacement. These functions are
      named after their output lengths in bits.</li>
@@ -149,7 +156,7 @@ wide use:
 
 <p>
 Now let's look at some applications of hash functions. Let's suppose that Alice
-is talking to Bob over a <span class="term">secure channel</span> (that is to
+is talking to Bob over a <i class="term">secure channel</i> (that is to
 say, Alice and Bob's messages to each other are authenticated and confidential).
 Alice has downloaded a large file from a particular website (a Linux install
 image, for example) and found it satisfactory, and is recommending the same
@@ -161,107 +168,106 @@ entire file to Bob so he can compare, Alice can compute a hash of the copy she
 has, then send the hash to Bob over their secure channel; Bob can compute the
 hash of the copy he has and check that the two hashes are equivalent. If the two
 hashes are equivalent, Bob can be extremely confident that he has the same file.
-This is an application of <span class="term">second preimage resistance</span>
+This is an application of <i class="term">second preimage resistance</i>
 of the hash function Alice and Bob are using; given the satisfactory copy Alice
-has (<tt>m</tt>), it would be very difficult for either the mirror or Mallory
-(who could be corrupting Bob's download) to find a corrupted copy <tt>m'</tt>
-such that <tt>h(m) = h(m')</tt>.
+has (<var>m</var>), it would be very difficult for either the mirror or Mallory
+(who could be corrupting Bob's download) to find a corrupted copy <var>m'</var>
+such that <code>h(m) = h(m')</code>.
 </p>
 
 <p>
-Another application of hash functions it to produce a <span class="term">proof
-of foreknowledge</span>.  Let's suppose that Alice has insider knowledge of an
+Another application of hash functions it to produce a <i class="term">proof
+of foreknowledge</i>.  Let's suppose that Alice has insider knowledge of an
 event that will happen in the future, and wants to be able to prove to Bob that
 she knew about that event in advance when it happens without telling Bob
-anything about the event in advance. Alice can write a message <tt>m</tt>
-describing the event, then give Bob <tt>h(m)</tt>; when the event happens, Alice
-can reveal <tt>m</tt> to Bob, and Bob can be confident that Alice had produced
-<tt>m</tt> when she originally gave him <tt>h(m)</tt>, as a result of the
-preimage resistance of <tt>h</tt>.
+anything about the event in advance. Alice can write a message <var>m</var>
+describing the event, then give Bob <code>h(m)</code>; when the event happens, Alice
+can reveal <var>m</var> to Bob, and Bob can be confident that Alice had produced
+<var>m</var> when she originally gave him <code>h(m)</code>, as a result of the
+preimage resistance of <var>h</var>.
 </p>
 
-<p><span class="term"><a name="symm" href="#symm">Symmetric Ciphers</a></span></p>
+<h2 id="symm">Symmetric Ciphers <small>[<a href="#symm">link</a>]</small></h2>
 <p>
 So far we've seen hash functions and their applications for authenticity and
-proofs, but we haven't yet seen a way to get confidentiality. Enter <span
-class="term">symmetric ciphers</span>. A cipher is a pair of functions <span
-class="term"><tt>E(k,m)</tt></span> (which encrypts a plaintext message
-<tt>m</tt> with a key <tt>k</tt> to produce a ciphertext, often called
-<tt>c</tt> in examples) and <span class="term"><tt>D(k,c)</tt></span> (which
-decrypts a ciphertext message <tt>c</tt> with a key <tt>k</tt> to produce a
-plaintext message <tt>m</tt>). A cipher is <span class="term">symmetric</span>
-if the same key <tt>k</tt> is used for both encryption and decryption. A
-symmetric cipher has the property that <span class="term"><tt>D(k,E(k,m)) =
-m</tt></span>.
+proofs, but we haven't yet seen a way to get confidentiality. Enter <i
+class="term">symmetric ciphers</i>. A cipher is a pair of functions <i
+class="term"><code>E(k,m)</code></i> (which encrypts a plaintext message
+<var>m</var> with a key <var>k</var> to produce a ciphertext, often called
+<var>c</var> in examples) and <i class="term"><code>D(k,c)</code></i> (which
+decrypts a ciphertext message <var>c</var> with a key <var>k</var> to produce a
+plaintext message <var>m</var>). A cipher is <i class="term">symmetric</i>
+if the same key <var>k</var> is used for both encryption and decryption. A
+symmetric cipher has the property that <code>D(k,E(k,m)) = m</code>.
 </p>
 
 <p>
-A simple (and historic) example of a symmetric cipher is the <span class="term">Caesar
-cipher</span>. The Caesar cipher operates on a stream of bytes and uses a one-byte
+A simple (and historic) example of a symmetric cipher is the <i class="term">Caesar
+cipher</i>. The Caesar cipher operates on a stream of bytes and uses a one-byte
 key, and has the following E and D functions:
 </p>
 
-<p><code>
-  E(k,m) = { m_i + k for m_i in m }
-  D(k,c) = { c_i - k for c_i in c }
-</code></p>
+<pre><code>  E(k,m) = { m<sub>i</sub> + k for m<sub>i</sub> in m }
+  D(k,c) = { c<sub>i</sub> - k for c<sub>i</sub> in c }
+</code></pre>
 
 <p>
-That is to say: to encrypt, add k to each byte in the message, mod 256; to
-decrypt, subtract k from each byte in the message, mod 256. It's easy to see how
-we might go about recovering <tt>m</tt> given <tt>E(...,m)</tt>: we can just try
-all 256 possible values of k and see which value of <tt>D(k,E(...,m))</tt> looks
-sensible. This attack is known as <span class="term">brute force</span> - the process of attacking
+That is to say: to encrypt, add <var>k</var> to each byte in the message, mod 256; to
+decrypt, subtract <var>k</var> from each byte in the message, mod 256. It's easy to see how
+we might go about recovering <var>m</var> given <code>E(...,m)</code>: we can just try
+all 256 possible values of k and see which value of <code>D(k,E(...,m))</code> looks
+sensible. This attack is known as <i class="term">brute force</i> - the process of attacking
 a cryptographic algorithm by trying all the possible values for some secret
-value. It is important to note that <span class="term">all</span> cryptographic systems are
+value. It is important to note that <em>all</em> cryptographic systems are
 <em>eventually</em> breakable by brute force (with some <a href="#otp">notable
 exceptions</a>), but for cryptographic systems used in practice, brute force
 often requires too much work to be a feasible attack.
 </p>
 
-<p><a name="otp" />
-Let's discuss another historic symmetric cipher: the <span class="term">one-time pad</span>. In
-order to use a one-time pad on a message <tt>m</tt>, we need a key <tt>k</tt> of
-the same length as the message <tt>m</tt>; the encryption and decryption
+<p id="otp">
+Let's discuss another historic symmetric cipher: the <i class="term">one-time pad</i>. In
+order to use a one-time pad on a message <var>m</var>, we need a key <var>k</var> of
+the same length as the message <var>m</var>; the encryption and decryption
 functions are then:
 </p>
 
-<p><code>
-  E(k,m) = { m_i ^ k_i for m_i in m }
-  D(k,c) = { c_i ^ k_i for c_i in c }
-</code></p>
+<pre><code>  E(k,m) = { m<sub>i</sub> ^ k<sub>i</sub> for m<sub>i</sub> in m }
+  D(k,c) = { c<sub>i</sub> ^ k<sub>i</sub> for c<sub>i</sub> in c }
+</code></pre>
 
 <p>
 You'll notice that E and D have the same definition: this is a consequence of
-the <tt>^</tt> (xor) operator, which has the property that <tt>x ^ y ^ y =
-x<tt>. Encryption using one-time pads is <em>unbreakable</em> under certain (very
+the <code>^</code> (xor) operator, which has the property that <code>x ^ y ^ y =
+x</code>. Encryption using one-time pads is <em>unbreakable</em> under certain (very
 strict) assumptions about use of the cipher:
 </p>
-<p><ul>
+
+<ul>
  <li>The key must be truly random, so that it is impossible for the attacker to
      predict any bit of the key.</li>
  <li>No byte of the key may ever be reused, either for this message or any
      other</li>
  <li>The key must be kept secret</li>
-</ul></p>
+</ul>
 
 <p>
-Under these assumptions, one-time pads have the <span class="term">perfect secrecy</span> property;
+Under these assumptions, one-time pads have the <i class="term">perfect secrecy</i> property;
 the ciphertext contains no information about the plaintext. A practical result
 of this is that brute force is impossible: by changing which key is chosen,
 <em>any</em> plaintext can be decrypted from a given ciphertext, so brute force is
 impossible; we have no way of detecting the correct message unless we know it in
-advance. More concretely, suppose an attacker tries to decrypt <tt>E(k,m)</tt>
-with some other key <tt>k'</tt>:
+advance. More concretely, suppose an attacker tries to decrypt
+<code>E(k,m)</code>
+with some other key <var>k'</var>:
 </p>
 
-<p><code>
+<pre><code>
   m = "hello"  = { 0x68, 0x65, 0x6c, 0x6c, 0x6f }
   k            = { 0xda, 0xf0, 0x88, 0x1a, 0x27 }
   E(k,m)       = { 0xb2, 0x95, 0xe4, 0x76, 0x48 }
   k'           = { 0xdf, 0xfc, 0x97, 0x02, 0x31 }
   m' = "misty" = { 0x6d, 0x69, 0x73, 0x74, 0x79 }
-</code></p>
+</code></pre>
 
 <p>
 Unfortunately, one-time pads are very difficult to use in practice. If Alice
@@ -275,10 +281,10 @@ without a preexisting secure way to transfer keys.
 </p>
 
 <p>
-Both of the previous ciphers are called <span class="term">stream ciphers</span>: they operate on a
-stream of data of arbitrary length. Many modern symmetric ciphers are <span class="term">block
-ciphers</span> instead, which operate on fixed-size blocks of data. A block cipher
-operates on a <span class="term">block</span> of fixed length at a time. A block cipher has an
+Both of the previous ciphers are called <i class="term">stream ciphers</i>: they operate on a
+stream of data of arbitrary length. Many modern symmetric ciphers are <i class="term">block
+ciphers</i> instead, which operate on fixed-size blocks of data. A block cipher
+operates on a <i class="term">block</i> of fixed length at a time. A block cipher has an
 encryption and decryption function, but instead of accepting arbitrary-length
 plaintext and ciphertext, they accept single blocks at a time, and produce
 single blocks. An example of a simple (and <em>extremely</em> insecure) block
@@ -286,119 +292,127 @@ cipher might be the following function, which accepts a 128-bit key and a
 128-bit block:
 </p>
 
-<p><code>
-  simple-block-E(k[16],m[16]) = { m_i ^ k_i for m_i in m }
-  simple-block-D(k[16],m[16]) = { m_i ^ k_i for m_i in m }
-</code></p>
+<pre><code>  simple-block-E(k[16],m[16]) = { m<sub>i</sub> ^ k<sub>i</sub> for m<sub>i</sub> in m }
+  simple-block-D(k[16],m[16]) = { m<sub>i</sub> ^ k<sub>i</sub> for m<sub>i</sub> in m }
+</code></pre>
 
 <p>
 Note that this cipher is essentially a constrained version of the one-time-pad
 cipher given above. An additional question with a block cipher is how to encrypt
-messages of more than one block, which introduces the concept of a <span class="term">mode</span>
-of a block cipher. When discussing these ciphers, we'll break the message
-<tt>m</tt> into a sequence of blocks <tt>m_0, m_1, ..., m_n</tt> (and the
-ciphertext <tt>c</tt> into a sequence of blocks <tt>c_0, c_1, ..., c_n</tt>).
-The simplest mode is called <span class="term">ECB</span>, which is short for <span class="term">electronic code
-book</span>; in this mode, plaintext is encrypted by encrypting successive blocks
-of it with the cipher's encryption function, and ciphertext is decrypted by
-decrypting successive blocks with the cipher's decryption function.  ECB looks
-like this:
+messages of more than one block, which introduces the concept of a <i
+class="term">mode</i> of a block cipher. When discussing these ciphers, we'll
+break the message <var>m</var> into a sequence of blocks
+<var>m<sub>0</sub></var>, <var>m<sub>1</sub></var>, ...,
+<var>m<sub>n</sub></var> (and the ciphertext <var>c</var> into a sequence of
+blocks <var>c<sub>0</sub></var>, <var>c<sub>1</sub></var>, ...,
+<var>c<sub>n</sub></var>).  The simplest mode is called <i class="term">ECB</i>,
+which is short for electronic code book; in this mode, plaintext is encrypted by
+encrypting successive blocks of it with the cipher's encryption function, and
+ciphertext is decrypted by decrypting successive blocks with the cipher's
+decryption function.  ECB looks like this:
 </p>
 
-<p><code>
-  simple-ecb-E(k[16],m_i) = simple-block-E(k,m_i)
-  simple-ecb-D(k[16],c_i) = simple-block-D(k,c_i)
-</code></p>
+<pre><code>  simple-ecb-E(k[16],m<sub>i</sub>) = simple-block-E(k,m<sub>i</sub>)
+  simple-ecb-D(k[16],c<sub>i</sub>) = simple-block-D(k,c<sub>i</sub>)
+</code></pre>
 
 <p>
 There's an alarming property inherent in simple-ecb-E: If our plaintext
-<tt>m</tt> contains two blocks <tt>m_i</tt> and <tt>m_j</tt> that are
-equivalent, then <tt>c_i</tt> and <tt>c_j</tt> will be equivalent - and as a
-further consequence, if Mallory knows some <tt>m_i</tt>, she can copy the
-corresponding <tt>c_i</tt> over <tt>c_j</tt> to replace <tt>m_j</tt> with
-<tt>m_i</tt>!. This discovery motivates the second block cipher mode, which is
-called <span class="term">CBC</span> (short for <span class="term">cipher block chaining</span>). In CBC, a dependency
-exists between each block of ciphertext and all of those before it. CBC looks
-like this:
+<var>m</var> contains two blocks <var>m_i</var> and <var>m_j</var> that are
+equivalent, then <var>c_i</var> and <var>c_j</var> will be equivalent - and as a
+further consequence, if Mallory knows some <var>m_i</var>, she can copy the
+corresponding <var>c_i</var> over <var>c_j</var> to replace <var>m_j</var> with
+<var>m_i</var>!. This discovery motivates the second block cipher mode, which is
+called <i class="term">CBC</i> (short for <i class="term">cipher block
+chaining</i>). In CBC, a dependency exists between each block of ciphertext and
+all of those before it. CBC looks like this:
 </p>
 
-<p><code>
-  simple-cbc-E(k[16],m_i) = simple-block-E(k,m_i ^ c_{i - 1})
-  simple-cbc-D(k[16],c_i) = simple-block-D(k,c_i) ^ c_{i - 1}
-</code></p>
+<pre><code>  simple-cbc-E(k[16],m<sub>i</sub>) = simple-block-E(k,m<sub>i</sub> ^ c<sub>i - 1</sub>)
+  simple-cbc-D(k[16],c<sub>i</sub>) = simple-block-D(k,c<sub>i</sub>) ^ c<sub>i - 1</sub>
+</code></pre>
 
 <p>
 You'll notice that as this mode is given right now, there is no way to encrypt
-c_0, since there's no c_{-1}. Therefore, we introduce a fake block at c_{-1},
-which we call the <span class="term">initialization vector</span>, or <span class="term">IV</span> for short. This
-fake block is prepended to the message before it is sent, where the sender can
-decrypt it and use it for CBC. CBC is widely used, but has some disadvantages:
+<var>c<sub>0</sub></var>, since there's no <var>c<sub>-1</sub></var>. Therefore,
+we introduce a fake block at <var>c<sub>-1</sub></var>, which we call the <i
+class="term">initialization vector</i>, or <i class="term">IV</i> for short.
+This fake block is prepended to the message before it is sent, where the sender
+can decrypt it and use it for CBC. CBC is widely used, but has some
+disadvantages:
 </p>
 
-<p><ul>
+<ul>
  <li>Since each block depends on the block before it, encryption cannot be
      parallelized.</li>
  <li>Since each block depends on the block before it, it is not possible to
      change part of a large message encrypted with a block cipher in the CBC
      mode without re-encrypting all the subsequent parts of the plaintext.</li>
-</ul></p>
+</ul>
 
 <p>
 There are a great many other block cipher modes, which are too numerous to list
-or discuss here, but it is worth calling out one more, which is called
-<span class="term">CTR</span> (short for <span class="term">counter</span>) mode. CTR mode turns a block cipher into a
-stream cipher by using the block cipher to generate a stream of bytes to xor
-with the plaintext. To use CTR mode, one chooses a <span class="term">nonce</span> (short for
-"number used once") and a <span class="term">counter</span>. We can then generate a key stream by
-encrypting successive values of the nonce combined with the counter. Let the
-generated key <tt>k'</tt> have length equal to the length of <tt>m</tt>, and let
-<tt>k'</tt> be composed of blocks <tt>k'_0, k'_1, ..., k'_n</tt>. Then:
-</p><code>
-  k'_i = simple-block-E(k,nonce + i)
-</code><p>
+or discuss here, but it is worth calling out one more, which is called <i
+class="term">CTR</i> (short for <i class="term">counter</i>) mode. CTR mode
+turns a block cipher into a stream cipher by using the block cipher to generate
+a stream of bytes to xor with the plaintext. To use CTR mode, one chooses a <i
+class="term">nonce</i> (short for "number used once") and a <i
+class="term">counter</i>. We can then generate a key stream by encrypting
+successive values of the nonce combined with the counter. Let the generated key
+<var>k'</var> have length equal to the length of <var>m</var>, and let
+<var>k'</var> be composed of blocks <var>k'<sub>0</sub></var>,
+<var>k'<sub>1</sub></var>, ..., <var>k'<sub>n</sub></var>. Then:
+</p>
+
+<pre><code>  <var>k<sub>i</sub></var> = simple-block-E(k,nonce + i)</code></pre>
 
 <p>
-We can now xor <tt>k'</tt> with <tt>m</tt> to produce <tt>c</tt>, and send
-<tt>c</tt> and <tt>nonce</tt> to the recipient; the recipient can then
-reconstruct <tt>k'</tt> using the same process and compute <tt>c ^ k' = m</tt>.
-Note that for CTR mode to be secure, the underlying block cipher used must make
-<span class="term">key recovery</span> difficult. Key recovery is the ability to derive <tt>k</tt>
-given <tt>m</tt> and <tt>E(k,m)</tt>. The example block cipher we've been using
-here does not have this property, since <tt>k = m ^ E(k,m)</tt>.
+We can now xor <var>k'</var> with <var>m</var> to produce <var>c</var>, and send
+<var>c</var> and <var>nonce</var> to the recipient; the recipient can then
+reconstruct <var>k'</var> using the same process and compute <code>c ^ k' =
+m</code>.  Note that for CTR mode to be secure, the underlying block cipher used
+must make <i class="term">key recovery</i> difficult. Key recovery is the
+ability to derive <var>k</var> given <var>m</var> and <code>E(k,m)</code>. The
+example block cipher we've been using here does not have this property, since
+<code>k = m ^ E(k,m)</code>.
 </p>
 
 <p>
-Since <tt>simple</tt> does not have this property, if Alice encrypts any block
-of plaintext known to Eve, Eve learns both <tt>c_i</tt> and <tt>m_i</tt>, which
-allows her to derive <tt>simple-block-E(k,nonce + i) = c_i ^ m_i</tt>, and since
-the Eve knows both the <tt>nonce</tt> and <tt>i</tt>, they can compute
-<tt>k</tt>. This is what is called a <span class="term">known-plaintext attack</span> - where
-knowing part of the plaintext allows Eve to recover the rest. There are a few
-such kinds of attacks:
+Since <code>simple</code> does not have this property, if Alice encrypts any
+block of plaintext known to Eve, Eve learns both <var>c<sub>i</sub></var> and
+<var>m<sub>i</sub></var>, which allows her to derive
+<code>simple-block-E(k,nonce + i) = <var>c<sub>i</sub></var> ^
+<var>m<sub>i</sub></var></code>, and since the Eve knows both the nonce and
+<var>i</var>, she can compute <var>k</var>. This is what is called a <i
+class="term">known-plaintext attack</i> - where knowing part of the plaintext
+allows Eve to recover the rest. There are a few such kinds of attacks:
 </p>
 
-<p><ul>
- <li>In a <span class="term">ciphertext-only</span> attack, Eve is assumed to have access only to
-     ciphertexts sent between Alice and Bob.</li>
- <li>In a <span class="term">known-plaintext</span> attack, Eve is assumed to have access to some
-     plaintexts and their corresponding ciphertexts sent between Alice and Bob,
-     and to be attempting to decrypt other ciphertexts sent between them using
-     the same key. As explained above, the <tt>simple</tt> block cipher is
-     vulnerable to this attack.</li>
- <li>In a <span class="term">chosen-plaintext</span> attack, Eve is assumed to be able to cause
-     Alice or Bob to encrypt plaintext of her choosing with their key. The
-     <tt>simple</tt> block cipher is also extremely vulnerable to this attack -
-     in the extreme case, if Eve can cause Alice or Bob to encrypt a block of
-     all zero bytes, the resulting ciphertext will be equal to their key.</li>
- <li>Similarly, in a <span class="term">chosen-ciphertext</span> attack, Eve is assumed to be able
-     to cause Alice or Bob to decrypt ciphertext of her choosing with their key.
-     The <tt>simple</tt> block cipher is similarly vulnerable to this attack -
-     if Eve can cause Alice or Bob to decrypt a ciphertext block composed of
-     all zero bytes, the resulting plaintext will be equal to their key.</li>
- <li>In an <span class="term">adaptive</span> attack, Eve is assumed to be able to supply
-     additional chosen plaintexts or ciphertexts after viewing previous ones, so
-     she can adapt her attack to things she has learned earlier.</li>
-</ul></p>
+<dl>
+ <dt class="term">Ciphertext-only attack
+ <dd> Eve is assumed to have access only to ciphertexts sent between Alice and Bob.
+ <dt class="term">Known-plaintext attack
+ <dd> Eve is assumed to have access to some plaintexts and their corresponding
+      ciphertexts sent between Alice and Bob, and to be attempting to decrypt
+      other ciphertexts sent between them using the same key. As explained
+      above, the <code>simple</code> block cipher is vulnerable to this attack.
+ <dt class="term">Chosen-plaintext attack
+ <dd> Eve is assumed to be able to cause Alice or Bob to encrypt plaintext of
+      her choosing with their key. The <code>simple</code> block cipher is also
+      very vulnerable to this attack - in the extreme case, if Eve can cause
+      Alice or Bob to encrypt a block of all zero bytes, the resulting
+      ciphertext will be equal to their key.
+ <dt class="term">Chosen-ciphertext attack
+ <dd> Eve is assumed to be able to cause Alice or Bob to decrypt ciphertext of
+      her choosing with their key. The <code>simple</code> block cipher is
+      similarly vulnerable to this attack - if Eve can cause Alice or Bob to
+      decrypt a ciphertext block composed of all zero bytes, the resulting
+      plaintext will be equal to their key.
+ <dt class="term">Adaptive attack
+ <dd> Eve is assumed to be able to supply additional chosen plaintexts or
+      ciphertexts after viewing previous ones, so she can adapt her attack
+      to things she has learned earlier.
+</dl>
 
 <p>
 Unfortunately, as with hash functions, existing block ciphers are too
@@ -407,8 +421,8 @@ embarassing lack of mathematical sophistication on the author's part, so it will
 have to suffice to list some that are in common use:
 </p>
 
-<p><ul>
- <li><span class="term">DES</span>, short for Data Encryption Standard, is an obsolete cipher
+<ul>
+ <li><i class="term">DES</i>, short for Data Encryption Standard, is an obsolete cipher
      originally designed by IBM with help from the NSA and published in 1977.
      DES uses a 56-bit key to operate on 64-bit blocks, and is notoriously
      irritating to implement in software. In spite of its advanced age and the
@@ -417,18 +431,18 @@ have to suffice to list some that are in common use:
      modern machines can successfully break DES keys in less than 24 hours for a
      relatively modest amount of money. DES is obsolete and should not be used
      for new protocols.</li>
- <li><span class="term">3-DES</span>, or Triple-DES, is a block cipher using either 168-bit or
+ <li><i class="term">3-DES</i>, or Triple-DES, is a block cipher using either 168-bit or
      112-bit key and applying DES multiple times. There are no known feasible
      attacks on Triple-DES, but it is also obsolete and should not be
      used.</li>
- <li><span class="term">AES</span> (formerly known as <span class="term">Rijndael</span>, short for Advanced
+ <li><i class="term">AES</i> (formerly known as <i class="term">Rijndael</i>, short for Advanced
      Encryption Standard) is a block cipher operating on a 128-bit block with a
      128, 192, or 256-bit key. There are no feasible attacks on AES, and it is
      the most widely-used symmetric cipher for new protocols.</li>
- <li><span class="term">Blowfish</span>, designed by cryptographer Bruce Schneier, operates on a
+ <li><i class="term">Blowfish</i>, designed by cryptographer Bruce Schneier, operates on a
      64-bit block and has a variable key length of up to 448 bits. There are no
      known feasible attacks on Blowfish, but it is less popular than AES.</li>
-</ul></p>
+</ul>
 
 <p>
 Applications of symmetric ciphers are easy to find: they are quite fast
@@ -436,111 +450,113 @@ Applications of symmetric ciphers are easy to find: they are quite fast
 known attacks on the best ciphers with appropriately-chosen keys.
 </p>
 
-<p><span class="term"><a name="hmac" href="#hmac">HMAC</a></span></p>
+<h2 id="hmac">HMAC <small>[<a href="#hmac">link</a>]</small></h2>
 <p>
 It's worth taking a brief detour into a spiritual child of hash functions and
-symmetric ciphers: the <span class="term">HMAC</span>, or <span class="term">hashed message authentication
-code</span>. Earlier, we saw that hashes let Alice and Bob prove that messages had
-not been tampered with, but didn't allow them to authenticate messages between
-them; for example, if Alice runs a web server somewhere that has a file
-available for download and lists its hash, if Mallory compromises the server,
-she can upload her own version of the file and its corresponding hash. An HMAC
-is a way of using a hash function such that a hash can only be produced by
-someone who knows a particular secret key - so if Alice and Bob share a secret
-key, and Alice puts the HMAC of her file up instead of the hash of it, then Bob
-can verify the HMAC, and Mallory cannot generate a new valid HMAC as she lacks
-the secret key. HMAC is the name both of a class of constructions which turn
-hash functions into secret-key authentication functions and the name of a
-specific such construction, which I'll describe below.
+symmetric ciphers: the <i class="term">HMAC</i>, or <i class="term">hashed
+message authentication code</i>. Earlier, we saw that hashes let Alice and Bob
+prove that messages had not been tampered with, but didn't allow them to
+authenticate messages between them; for example, if Alice runs a web server
+somewhere that has a file available for download and lists its hash, if Mallory
+compromises the server, she can upload her own version of the file and its
+corresponding hash. An HMAC is a way of using a hash function such that a hash
+can only be produced by someone who knows a particular secret key - so if Alice
+and Bob share a secret key, and Alice puts the HMAC of her file up instead of
+the hash of it, then Bob can verify the HMAC, and Mallory cannot generate a new
+valid HMAC as she lacks the secret key. HMAC is the name both of a class of
+constructions which turn hash functions into secret-key authentication functions
+and the name of a specific such construction, which I'll describe below.
 </p>
 
 <p>
 Let's try designing the simplest HMAC construction we can think of. Remembering
-from earlier that a good hash function has <span class="term">preimage resistance</span> and
-<span class="term">second preimage resistance</span>, we might try doing this (here, "||" is read
-as "concatenated with"):
+from earlier that a good hash function has <i class="term">preimage
+resistance</i> and <i class="term">second preimage resistance</i>, we might try
+doing this (here, "||" is read as "concatenated with"):
 </p>
 
-<p><code>
-  simple-hmac(h,k,m) = h(k || m)
-</code></p>
+<pre><code>  simple-hmac(h,k,m) = h(k || m)</code></pre>
 
 <p>
-Since <tt>h</tt> has preimage resistance, it should be hard for Mallory to
-derive <tt>k</tt> given <tt>h(k || m)</tt>, and since <tt>h</tt> has
-second-preimage resistance, it should be hard for Mallory to derive <tt>h(k ||
-m')</tt> given <tt>h(k || m)</tt>. Unfortunately, as the astute reader will have
-guessed from the name of the function, there's a problem. In order to explain,
-we'll have to delve a bit into the way modern hash functions are constructed.
+Since <var>h</var> has preimage resistance, it should be hard for Mallory to
+derive <var>k</var> given <code>h(k || m)</code>, and since <var>h</var> has
+second-preimage resistance, it should be hard for Mallory to derive <code>h(k ||
+m')</code> given <code>h(k || m)</code>. Unfortunately, as the astute reader
+will have guessed from the name of the function, there's a problem. In order to
+explain, we'll have to delve a bit into the way modern hash functions are
+constructed.
 </p>
 
 <p>
 Modern hash functions are often built with a construction called the
-<span class="term">Merkle-Damg&aring;rd construction</span>. The Merkle-Damg&aring;rd construction is
+<i class="term">Merkle-Damg&aring;rd construction</i>. The Merkle-Damg&aring;rd construction is
 spiritually similar to a block cipher mode - it turns a function called a
-<span class="term">compression function</span>, which turns two fixed-length inputs into one
+<i class="term">compression function</i>, which turns two fixed-length inputs into one
 fixed-length output, into a hash function, which turns one variable-length input
 into one fixed-length output. Merkle-Damg&aring;rd works as follows, given a
-compression function <tt>C</tt> and an IV <tt>I</tt>:
+compression function <var>C</var> and an IV <var>I</var>:
 </p>
 
-<p><ol>
- <li>Let <tt>m' = m || len(m) || padding</tt>, where <tt>len</tt> returns a
-     fixed-width integer and <tt>padding</tt> is sufficient to make m' an
-     integral number of blocks. Call these blocks m'_0, m'_1, ... m'_n.</li>
- <li>Let m'_{-1} = I</li>
- <li>Let s_i = C(m_i, s_i)</li>
- <li>Return s_n</li>
-</ol></p>
+<ol>
+ <li>Let <code>m' = m || len(m) || padding</code>, where <code>len</code> returns a
+     fixed-width integer and <var>padding</var> is sufficient to make
+     <var>m'</var> an integral number of blocks. Call these blocks
+     <var>m'<sub>0</sub></var>, <var>m'<sub>1</sub></var>, ...
+     <var>m'<sub>n</sub></var>.</li>
+ <li>Let <var>m'<sub>-1</sub></var> = I</li>
+ <li>Let <var>s<sub>i</sub></var> = <code>C(m<sub>i</sub>, s<sub>i</sub>)</code></li>
+ <li>Return <var>s<sub>n</sub></var></li>
+</ol>
 
 <p>
 Merkle-Damg&aring;rd is popular, but it has one property which concerns us here: if h
 is a hash function using the Merkle-Damg&aring;rd construction, then given
-<tt>simple-hmac(h,k,m)</tt>, it is easy for Mallory to find
-<tt>simple-hmac(h,k,m || len(m) || padding || anything)</tt>. The reason for this is
-as follows: suppose Mallory knows <tt>simple-hmac(h,k,m)</tt>. She then really
-knows <tt>s_n</tt>, where <tt>s_n</tt> is the state of <tt>h</tt> after applying
-<tt>C</tt> to all of the blocks of <tt>m'</tt>. She can exploit this to
-undertake a <span class="term">length-extension attack</span>: if she appends a new block m_{n + 1}
-to m', then re-appends the new length and padding after m_{n + 1}, she can
-easily compute <tt>s_{n + 1} = C(m_{n + 1}, s_n)</tt>. Therefore, the
-<tt>simple-hmac</tt> construction is not adequate - Mallory can append whatever
+<code>simple-hmac(h,k,m)</code>, it is easy for Mallory to find
+<code>simple-hmac(h,k,m || len(m) || padding || anything)</code>. The reason for this is
+as follows: suppose Mallory knows <code>simple-hmac(h,k,m)</code>. She then really
+knows <var>s<sub>n</sub></var>, where <var>s<sub>n</sub></var> is the state of
+<var>h</var> after applying
+<var>C</var> to all of the blocks of <var>m'</var>. She can exploit this to
+undertake a <i class="term">length-extension attack</i>: if she appends a new
+block <var>m<sub>n + 1</sub></var> to <var>m'</var>, then re-appends the new
+length and padding after <var>m<sub>n + 1</sub></var>, she can
+easily compute <code><var>s<sub>n + 1</sub></var> = C(<var>m<sub>n +
+1</sub></var>, <var>s<sub>n</sub></var>)</code>. Therefore, the
+<code>simple-hmac</code> construction is not adequate - Mallory can append whatever
 she wants to authentic messages to produce new authentic messages.
 </p>
 
 <p>
 Enter the HMAC construction. The HMAC construction is as follows, with
-<tt>opad</tt> being the byte <tt>0x5c</tt> repeated enough times to form one
-block for the hash function, and <tt>ipad</tt> being the byte <tt>0x36</tt>
+<var>opad</var> being the byte <var>0x5c</var> repeated enough times to form one
+block for the hash function, and <var>ipad</var> being the byte <var>0x36</var>
 being repeated enough times to form one block for the hash function:
 </p>
 
-<p><code>
-  hmac(h,k,m) = h((k ^ opad) || h((k ^ ipad) || m))
-</code></p>
+<pre><code>  hmac(h,k,m) = h((k ^ opad) || h((k ^ ipad) || m))</code></pre>
 
 <p>
 The outer invocation of h protects the output state of the inner invocation of
 h, which makes length-extension attacks impossible, and since h((k ^ ipad) || m)
 has a fixed length, Mallory cannot use her knowledge of the final state of the
 outer invocation of h for a length-extension attack either. Instances of
-<tt>hmac</tt> with a specific hash value for <tt>h</tt> are often named as
-<tt>HMAC-&lt;name&gt;</tt> - e.g., <span class="term">HMAC-SHA256</span>, <span class="term">HMAC-MD5</span>, and so
-on.
+<code>hmac</code> with a specific hash value for <var>h</var> are often named as
+<code>HMAC-<var>h</var></code> - e.g., <i class="term">HMAC-SHA256</i>, <i
+class="term">HMAC-MD5</i>, and so on.
 </p>
 
 <p>
 Applications of HMAC are again simple to find: if Alice and Bob share a key
-<tt>k</tt>, then Alice can send Bob a message <tt>m</tt> and
-<tt>HMAC-SHA256(k,m)</tt>; Bob, using <tt>k</tt>, can compute
-<tt>HMAC-SHA256(k,m)</tt> and verify that it matches what Alice sent, and
-therefore know that Alice sent <tt>m</tt>. Furthermore, Alice and Bob can
+<var>k</var>, then Alice can send Bob a message <var>m</var> and
+<code>HMAC-SHA256(k,m)</code>; Bob, using <var>k</var>, can compute
+<code>HMAC-SHA256(k,m)</code> and verify that it matches what Alice sent, and
+therefore know that Alice sent <var>m</var>. Furthermore, Alice and Bob can
 actually use HMAC to distinguish messages and random data; if Alice, with a
-message <tt>m</tt> and a key <tt>k</tt>, produces <tt>c = E(k,m) ||
-HMAC-SHA256(k,E(k,m))</tt> and posts this value publicly, only Bob (possessing
-<tt>k</tt>) will be able to distinguish <tt>c</tt> from random data, since
-<tt>c</tt> has the property that its last 256 bits are the <tt>HMAC-SHA256</tt>
-of the rest of it under the secret key Alice and Bob share.
+message <var>m</var> and a key <var>k</var>, produces <code>c = E(k,m) ||
+HMAC-SHA256(k,E(k,m))</code> and posts this value publicly, only Bob (possessing
+<var>k</var>) will be able to distinguish <var>c</var> from random data, since
+<var>c</var> has the property that its last 256 bits are the
+<code>HMAC-SHA256</code> of the rest of it under the secret key Alice and Bob share.
 </p>
 
 <p><b><a name="asymm" href="#asymm">Asymmetric Ciphers</a></b></p>

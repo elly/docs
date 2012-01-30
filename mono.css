@@ -1,20 +1,17 @@
-p,h1,li {
-  font-family: monospace;
-  font-size: 100%;
-  font-weight: normal;
-  width: 80ex;
+* {
+	font-family: "sans-serif";
+	max-width: 80ex;
 }
 
-code {
-  margin-left: 4ex;
-  width: 80ex;
+h2 {
+	font-size: 150%;
 }
 
 .term {
-  color: red;
-  /* font-weight: bold; */
+	color: red;
 }
 
-tt {
-  font-weight: bold;
+code,var {
+	font-family: "monospace";
+	color: green;
 }
