@@ -11,7 +11,7 @@ h2 {
 	color: red;
 }
 
-code,var {
+code,var,sub {
 	font-family: monospace;
 	color: green;
 }
