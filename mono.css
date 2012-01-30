@@ -2,10 +2,12 @@ p,h1,li {
   font-family: monospace;
   font-size: 100%;
   font-weight: normal;
+  width: 80ex;
 }
 
 code {
   margin-left: 4ex;
+  width: 80ex;
 }
 
 .term {
