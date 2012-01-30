@@ -12,6 +12,6 @@ h2 {
 }
 
 code,var {
-	font-family: "monospace";
+	font-family: monospace;
 	color: green;
 }
